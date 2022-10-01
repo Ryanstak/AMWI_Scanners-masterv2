@@ -1,0 +1,12 @@
+@media only screen and (max-width: 768px) {
+    figure img {
+        width: initial !important;
+    }
+}
+
+.math {
+    text-align: left;
+}
+.eqno {
+    float: right;
+}
