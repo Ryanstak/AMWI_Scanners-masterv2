@@ -14,8 +14,8 @@ PEAK_MERGE_LIMIT_M = 0.005
 
 def get_sensor_config():
     config = et.a111.EnvelopeServiceConfig()
-    config.range_interval = [0.2, 0.6]
-    config.update_rate = 40
+    config.range_interval = [0.01, 1.0]
+    config.update_rate = 50
     config.gain = 0.5
     config.running_average_factor = 0  # Use averaging in detector instead of in API
 

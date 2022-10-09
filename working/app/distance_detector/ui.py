@@ -1,9 +1,16 @@
 import numpy as np
-
+import os
+import pathlib
 import pyqtgraph as pg
-
+import math
+import sys
+import pyqtgraph.exporters
 import acconeer.exptool as et
-
+import pyautogui
+from pyqtgraph.console import ConsoleWidget
+from pyqtgraph.dockarea.Dock import Dock
+from pyqtgraph.dockarea.DockArea import DockArea
+from pyqtgraph.Qt import QtWidgets
 
 class PGUpdater:
     def __init__(self, sensor_config, processing_config, session_info):
@@ -29,24 +36,65 @@ class PGUpdater:
         )
 
         # ...and hide the marker and text in the legend.
-        self.hist_plot.legend.items[2][0].setVisible(processing_config.show_first_above_threshold)
-        self.hist_plot.legend.items[2][1].setVisible(processing_config.show_first_above_threshold)
+        #self.hist_plot.legend.items[2][0].setVisible(processing_config.show_first_above_threshold)
+        #self.hist_plot.legend.items[2][1].setVisible(processing_config.show_first_above_threshold)
 
         self.hist_plot.setXRange(-processing_config.history_length_s, 0)
 
     def setup(self, win):
-        win.setWindowTitle("Acconeer Distance Detector")
+        #app = pg.mkQApp("Distance Detector")
+        self.win = QtWidgets.QMainWindow()
+        self.area = DockArea()
+        self.win.setCentralWidget(self.area)
+        self.win.setWindowTitle("Acconeer Distance Detector")
+        self.win.resize(1610,1010)
 
+        self.d1 = Dock('Options', size=(10,10))
+        self.d2 = Dock('Sweep Plot', size=(800,500))
+        self.d3 = Dock('History Plot', size=(800,500))
+        
+        self.area.addDock(self.d1, 'right')
+        self.area.addDock(self.d2, 'right')
+        self.area.addDock(self.d3, 'bottom')
+        
+        self.w1 = pg.LayoutWidget()
+        self.filelabel = QtWidgets.QLabel('File Name:')
+        self.filename = QtWidgets.QLineEdit()
+        self.constantlabel = QtWidgets.QLabel('Dielectirc Constant')
+        self.constantDrop = QtWidgets.QComboBox()
+        self.saveBtn = QtWidgets.QPushButton('Save File')
+        self.closeBtn = QtWidgets.QPushButton('Close')
+        
+        self.constantDrop.addItems(['HDPE (2.2)', 'GFRP (4.4)'])
+        if self.constantDrop.currentIndex() == 0 :
+            self.constant = math.sqrt(2.2)
+        else :
+            self.constant = math.sqrt(4.4)
+        
+        
+        self.w1.addWidget(self.filelabel, row=0, col=0)
+        self.w1.addWidget(self.filename, row=0, col=1)
+        self.w1.addWidget(self.constantlabel, row=1, col=0)
+        self.w1.addWidget(self.constantDrop, row=1, col=1)
+        self.w1.addWidget(self.saveBtn, row=2, col=0)
+        self.w1.addWidget(self.closeBtn, row=2, col=1)
+        self.d1.addWidget(self.w1)
+        state = None
+
+        
+        self.saveBtn.clicked.connect(self.screenshot)
+        self.closeBtn.clicked.connect(self.close)
         # Sweep Plot
-        self.sweep_plot = win.addPlot(title="Sweep and threshold")
-        self.sweep_plot.setMenuEnabled(False)
+        self.sweep_plot = pg.PlotWidget(title="Sweep and threshold")
+        #self.sweep_plot.setMenuEnabled(False)
         self.sweep_plot.setMouseEnabled(x=False, y=False)
-        self.sweep_plot.hideButtons()
+        #self.sweep_plot.hideButtons()
         self.sweep_plot.showGrid(x=True, y=True)
         self.sweep_plot.addLegend()
         self.sweep_plot.setLabel("bottom", "Distance (mm)")
         self.sweep_plot.setYRange(0, 20000)
         self.sweep_plot.setXRange(1000.0 * self.r[0], 1000.0 * self.r[-1])
+
 
         self.sweep_curve = self.sweep_plot.plot(
             pen=et.utils.pg_pen_cycler(5),
@@ -87,10 +135,10 @@ class PGUpdater:
         self.peak_text.setZValue(100)
         self.sweep_plot.addItem(self.peak_text)
 
-        win.nextRow()
+        #win.nextRow()
 
         # Detection history Plot
-        self.hist_plot = win.addPlot(title="Detected peaks")
+        self.hist_plot = pg.PlotWidget(title="Detected peaks")
         self.hist_plot.setMenuEnabled(False)
         self.hist_plot.setMouseEnabled(x=False, y=False)
         self.hist_plot.hideButtons()
@@ -129,9 +177,23 @@ class PGUpdater:
             visible=False,
         )
 
+        self.d2.addWidget(self.sweep_plot)
+        self.d3.addWidget(self.hist_plot)
+
+        self.win.show()
+
         self.setup_is_done = True
         self.update_processing_config()
 
+
+
+    def screenshot(self):
+        file_name = self.filename.text()
+        im = pyautogui.screenshot(file_name, region=(0,0,1610,1010))
+    
+    def close(self):
+        sys.exit
+        
     def update(self, data):
         self.sweep_curve.setData(1000.0 * self.r, data["sweep"])
         self.mean_sweep_curve.setData(1000.0 * self.r, data["last_mean_sweep"])
@@ -157,8 +219,10 @@ class PGUpdater:
             data["above_thres_hist_sweep_s"], 1000 * data["above_thres_hist_dist"]
         )
 
+
+        
         if data["found_peaks"] is not None:
-            peaks = np.take(self.r, data["found_peaks"]) * 1000.0
+            peaks = np.take(self.r, data["found_peaks"])* 1000.0
             for i, line in enumerate(self.peak_lines):
                 try:
                     peak = peaks[i]
@@ -168,11 +232,21 @@ class PGUpdater:
                     line.setPos(peak)
                     line.show()
 
+
+
+            
+            #if len(peaks)>2:
+            #    text = f"Peak One: {sorted_peaks[0]:.2f} mm Peak Two: {sorted_peaks[1]:.2f} mm Peak Three: {sorted_peaks[2]:.2f} mm Uncorrected Depth (Peak 2): {difference_peaks1:.2f} mm Material Depth (Peak 2): {material_peaks1:.2f} mm Uncorrected Depth (Peak 3): {difference_peaks2:.2f} mm Material Depth (Peak 3): {material_peaks2:.2f} mm"
             if len(peaks)>1:
                 sorted_peaks = sorted(peaks)
-                text = f"{sorted_peaks[0]:.2f} cm {sorted_peaks[1]:.2f} cm"
+                diconstant = self.constant
+                difference_peaks1 = (sorted_peaks[1] - sorted_peaks[0])
+            #difference_peaks2 = (sorted_peaks[2] - sorted_peaks[0])
+                material_peaks1 = difference_peaks1 / diconstant
+            #material_peaks2 = difference_peaks2 / diconstant
+                text = f"Peak One: {sorted_peaks[0]:.2f} mm Peak Two: {sorted_peaks[1]:.2f} mm Uncorrected Depth: {difference_peaks1:.2f} mm Material Depth: {material_peaks1:.2f} "
             elif len(peaks) == 1:
-                text = f"{peaks[0]:.2f} cm"
+                text = f"{peaks[0]:.2f} mm"
             else:
                 text = "-"
             #if data["found_peaks"]:
@@ -182,3 +256,6 @@ class PGUpdater:
             #    text = "-"
 
             self.peak_text.setText(text)
+            
+#if __name__ == '__main__':
+#    pg.exec()

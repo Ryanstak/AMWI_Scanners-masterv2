@@ -180,5 +180,5 @@ class PGUpdater:
             #    text = "{:.2f} mm, {:.1f}".format(peaks[0], amplitude)
             #else:
             #    text = "-"
-
+ 
             self.peak_text.setText(text)
