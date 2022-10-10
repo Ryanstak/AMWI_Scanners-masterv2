@@ -1,13 +1,8 @@
 import numpy as np
-import os
-import pathlib
 import pyqtgraph as pg
 import math
-import sys
-import pyqtgraph.exporters
 import acconeer.exptool as et
 import pyautogui
-from pyqtgraph.console import ConsoleWidget
 from pyqtgraph.dockarea.Dock import Dock
 from pyqtgraph.dockarea.DockArea import DockArea
 from pyqtgraph.Qt import QtWidgets
@@ -192,7 +187,7 @@ class PGUpdater:
         im = pyautogui.screenshot(file_name, region=(0,0,1610,1010))
     
     def close(self):
-        sys.exit
+        quit()
         
     def update(self, data):
         self.sweep_curve.setData(1000.0 * self.r, data["sweep"])

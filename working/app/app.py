@@ -1,92 +1,19 @@
 
-from PySide6.QtGui import QPixmap
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon
-#from PIL.ImageQt import ImageQt
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 import sys
 import pyqtgraph as pg
 import os
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import sys
 from PIL import Image
-import time
-
-import sys
-import time
-
-from PySide6.QtCore import QUrl
-from PySide6.QtQml import QQmlApplicationEngine
-from PySide6.QtWidgets import QApplication
-from PySide6.QtWebEngineQuick import QtWebEngineQuick
-import numpy as np
-import serial.tools.list_ports
-from packaging import version
 import subprocess
-import sys
-import pyautogui
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QApplication, QLineEdit,
-    QMainWindow, QPushButton, QToolBar)
-from PySide6.QtWebEngineCore import QWebEnginePage
-from PySide6.QtWebEngineWidgets import QWebEngineView
-
-from acconeer.exptool import utils
-#from acconeer.exptool.a111 import _clients
 from PyQt5.QtCore import (
     QObject,
     QThread,
     pyqtSignal
 )
-import sys
-import PySide6.QtWebEngineWidgets
-from PySide6 import QtCore
-from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QAction, QKeySequence, QIcon
-from PySide6.QtWidgets import (QApplication, QDockWidget, QLabel,
-                               QLineEdit, QMainWindow, QToolBar)
-from PySide6.QtWebEngineCore import QWebEngineDownloadRequest, QWebEnginePage
-from PySide6.QtWidgets import (
-    QApplication,
-    QCheckBox,
-    QFormLayout,
-    QLineEdit,
-    QVBoxLayout,
-    QWidget,
-    QMessageBox,
-)
 
-from PySide6.QtWidgets import (
-    QGroupBox,
-    QLabel,
-    QLineEdit,
-    QHBoxLayout,
-    QPlainTextEdit,
-    QRadioButton,
-    QSpinBox,
-    QVBoxLayout,
-    QApplication,
-    QComboBox,
-    QFormLayout,
-    QTableWidget,
-    QTableWidgetItem,
-    QLineEdit,
-    QStackedLayout,
-    QVBoxLayout,
-    QWidget,
-    QWidget,
-    QApplication,
-    QFormLayout,
-    QMainWindow,
-    QApplication,
-    QPushButton,
-    QMenu,
-)
 from subprocess import check_output
-
 import acconeer.exptool as et
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -106,7 +33,6 @@ class RadarActivation(QObject):
         ssh.communicate("./rpi_xc112/out/acc_exploration_server_a111\n")
 
         self.finished.emit()
-    
 
 class Window(QMainWindow):
     def __init__(self):
