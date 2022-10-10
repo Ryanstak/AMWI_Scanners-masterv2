@@ -1,21 +1,19 @@
 
+import sys
+import os
+import subprocess
+
+from PIL import Image
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-import sys
-import pyqtgraph as pg
-import os
-from PIL import Image
-import subprocess
+from subprocess import check_output
+from PySide6 import QtCore, QtWidgets
 from PyQt5.QtCore import (
     QObject,
     QThread,
     pyqtSignal
 )
-
-from subprocess import check_output
-import acconeer.exptool as et
-from PySide6 import QtCore, QtGui, QtWidgets
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -57,31 +55,12 @@ class Window(QMainWindow):
         self.label.setPixmap(self.logo)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
     
-        
-        pg.setConfigOption("background", "w")
-        pg.setConfigOption("foreground", "k")
-        pg.setConfigOptions(antialias=True)
-        win = pg.GraphicsLayoutWidget()
-        env_plot = win.addPlot(title="Envelope")
-        env_plot.showGrid(x=True, y=True)
-        env_plot.setLabel("bottom", "Depth (m)")
-        env_plot.setLabel("left", "Amplitude")
-
-
-        win.nextRow()
-        hist_plot = win.addPlot()
-        hist_plot.setLabel("bottom", "Time (s)")
-        hist_plot.setLabel("left", "Depth (m)")
-
-
-        #hist_image_item.setLookupTable(et.utils.pg_mpl_cmap("viridis"))
-            
         self.stackedlayout.addWidget(self.label)
-        self.stackedlayout.addWidget(win)
         
         self.btn_1 = QtWidgets.QPushButton("Start Radar")
         self.btn_2 = QtWidgets.QPushButton("Start Scanner")
         self.btn_3 = QtWidgets.QPushButton("Load Scan")
+        self.btn_4 = QtWidgets.QPushButton("Close")
         
         self.IP = QLineEdit()
         self.DataName = QLineEdit()
@@ -90,11 +69,13 @@ class Window(QMainWindow):
         optionslayout.addWidget(self.btn_1)
         optionslayout.addWidget(self.btn_2)
         optionslayout.addWidget(self.btn_3)
+        optionslayout.addWidget(self.btn_4)
 
         self.btn_1.clicked.connect(self.runRadarActivation)
         self.btn_2.clicked.connect(self.scanner)
         self.btn_3.clicked.connect(self.activate_load)
         self.btn_1.clicked.connect(self.layoutchange)
+        self.btn_4.clicked.connect(self.close)
 
         widget = QWidget()
         widget.setLayout(pagelayout)

@@ -49,12 +49,12 @@ class PGUpdater:
         self.d3 = Dock('History Plot', size=(800,500))
         
         self.area.addDock(self.d1, 'right')
-        self.area.addDock(self.d2, 'right')
+        self.area.addDock(self.d2, 'bottom')
         self.area.addDock(self.d3, 'bottom')
         
         self.w1 = pg.LayoutWidget()
         self.filelabel = QtWidgets.QLabel('File Name:')
-        self.filename = QtWidgets.QLineEdit()
+        self.filename = QtWidgets.QLineEdit('name.png')
         self.constantlabel = QtWidgets.QLabel('Dielectirc Constant')
         self.constantDrop = QtWidgets.QComboBox()
         self.saveBtn = QtWidgets.QPushButton('Save File')
@@ -69,10 +69,10 @@ class PGUpdater:
         
         self.w1.addWidget(self.filelabel, row=0, col=0)
         self.w1.addWidget(self.filename, row=0, col=1)
-        self.w1.addWidget(self.constantlabel, row=1, col=0)
-        self.w1.addWidget(self.constantDrop, row=1, col=1)
-        self.w1.addWidget(self.saveBtn, row=2, col=0)
-        self.w1.addWidget(self.closeBtn, row=2, col=1)
+        self.w1.addWidget(self.constantlabel, row=0, col=2)
+        self.w1.addWidget(self.constantDrop, row=0, col=3)
+        self.w1.addWidget(self.saveBtn, row=1, col=2)
+        self.w1.addWidget(self.closeBtn, row=1, col=3)
         self.d1.addWidget(self.w1)
         state = None
 
@@ -239,7 +239,7 @@ class PGUpdater:
             #difference_peaks2 = (sorted_peaks[2] - sorted_peaks[0])
                 material_peaks1 = difference_peaks1 / diconstant
             #material_peaks2 = difference_peaks2 / diconstant
-                text = f"Peak One: {sorted_peaks[0]:.2f} mm Peak Two: {sorted_peaks[1]:.2f} mm Uncorrected Depth: {difference_peaks1:.2f} mm Material Depth: {material_peaks1:.2f} "
+                text = f"Peak One: {sorted_peaks[0]:.2f} mm Peak Two: {sorted_peaks[1]:.2f} mm Uncorrected Depth: {difference_peaks1:.2f} mm Material Depth: {material_peaks1:.2f} mm"
             elif len(peaks) == 1:
                 text = f"{peaks[0]:.2f} mm"
             else:
