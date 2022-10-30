@@ -61,10 +61,10 @@ class PGUpdater:
         self.closeBtn = QtWidgets.QPushButton('Close')
         
         self.constantDrop.addItems(['HDPE (2.2)', 'GFRP (4.4)'])
-        if self.constantDrop.currentIndex() == 0 :
-            self.constant = math.sqrt(2.2)
-        else :
-            self.constant = math.sqrt(4.4)
+        if self.constantDrop.currentIndex() == 0:
+            self.constant_variable = math.sqrt(4.4)
+        else:
+            self.constant_variable = math.sqrt(2.2)
         
         
         self.w1.addWidget(self.filelabel, row=0, col=0)
@@ -188,7 +188,8 @@ class PGUpdater:
     
     def close(self):
         quit()
-        
+    
+
     def update(self, data):
         self.sweep_curve.setData(1000.0 * self.r, data["sweep"])
         self.mean_sweep_curve.setData(1000.0 * self.r, data["last_mean_sweep"])
@@ -234,7 +235,7 @@ class PGUpdater:
             #    text = f"Peak One: {sorted_peaks[0]:.2f} mm Peak Two: {sorted_peaks[1]:.2f} mm Peak Three: {sorted_peaks[2]:.2f} mm Uncorrected Depth (Peak 2): {difference_peaks1:.2f} mm Material Depth (Peak 2): {material_peaks1:.2f} mm Uncorrected Depth (Peak 3): {difference_peaks2:.2f} mm Material Depth (Peak 3): {material_peaks2:.2f} mm"
             if len(peaks)>1:
                 sorted_peaks = sorted(peaks)
-                diconstant = self.constant
+                diconstant = self.constant_variable
                 difference_peaks1 = (sorted_peaks[1] - sorted_peaks[0])
             #difference_peaks2 = (sorted_peaks[2] - sorted_peaks[0])
                 material_peaks1 = difference_peaks1 / diconstant

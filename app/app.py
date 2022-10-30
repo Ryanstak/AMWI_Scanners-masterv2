@@ -116,7 +116,7 @@ class Window(QMainWindow):
         
     def scanner(self):
         ipValue = self.IP.text()
-        check_output(f"python -m distance_detector -s 192.168.1.131")
+        check_output(f"python -m distance_detector -u com5")
     #THis should be embedded in the main ui. change the layout from the logo to this
         
           
