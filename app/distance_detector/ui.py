@@ -13,7 +13,9 @@ class PGUpdater:
         self.processing_config = processing_config
 
         self.r = et.a111.get_range_depths(sensor_config, session_info)
-
+        self.depths = et.a111.get_range_depths(sensor_config, session_info)
+        self.depth_res = session_info["step_length_m"]
+        self.smooth_max = et.utils.SmoothMax(sensor_config.update_rate)
         self.setup_is_done = False
 
     def update_processing_config(self, processing_config=None):
@@ -74,7 +76,7 @@ class PGUpdater:
         self.w1.addWidget(self.saveBtn, row=1, col=2)
         self.w1.addWidget(self.closeBtn, row=1, col=3)
         self.d1.addWidget(self.w1)
-        state = None
+        #state = None
 
         
         self.saveBtn.clicked.connect(self.screenshot)
@@ -172,8 +174,71 @@ class PGUpdater:
             visible=False,
         )
 
+
+        num_sensors = len(self.sensor_config.sensor)
+
+        self.ampl_plot = pg.PlotWidget(title="Amplitude", row=0, colspan=num_sensors)
+        self.ampl_plot.setMenuEnabled(False)
+        self.ampl_plot.setMouseEnabled(x=False, y=False)
+        self.ampl_plot.hideButtons()
+        self.ampl_plot.showGrid(x=True, y=True)
+        self.ampl_plot.setLabel("bottom", "Depth (m)")
+        self.ampl_plot.setLabel("left", "Amplitude")
+        self.ampl_plot.setXRange(*self.depths.take((0, -1)))
+        self.ampl_plot.setYRange(0, 1)  # To avoid rendering bug
+        self.ampl_plot.addLegend(offset=(-10, 10))
+
+        self.ampl_curves = []
+        self.bg_curves = []
+        self.peak_lines = []
+        for i, sensor_id in enumerate(self.sensor_config.sensor):
+            legend = "Sensor {}".format(sensor_id)
+            ampl_curve = self.ampl_plot.plot(pen=et.utils.pg_pen_cycler(i), name=legend)
+            bg_curve = self.ampl_plot.plot(pen=et.utils.pg_pen_cycler(i, style="--"))
+            color_tuple = et.utils.hex_to_rgb_tuple(et.utils.color_cycler(i))
+            peak_line = pg.InfiniteLine(pen=pg.mkPen(pg.mkColor(*color_tuple, 150), width=2))
+            self.ampl_plot.addItem(peak_line)
+            self.ampl_curves.append(ampl_curve)
+            self.bg_curves.append(bg_curve)
+            self.peak_lines.append(peak_line)
+
+        bg = pg.mkColor(0xFF, 0xFF, 0xFF, 150)
+        self.peak_text = pg.TextItem(anchor=(0, 1), color="k", fill=bg)
+        self.peak_text.setPos(self.depths[0], 0)
+        self.peak_text.setZValue(100)
+        self.ampl_plot.addItem(self.peak_text)
+
+        rate = self.sensor_config.update_rate
+        xlabel = "Sweeps" if rate is None else "Time (s)"
+        x_scale = 1.0 if rate is None else 1.0 / rate
+        y_scale = self.depth_res
+        x_offset = -self.processing_config.history_length * x_scale
+        y_offset = self.depths[0] - 0.5 * self.depth_res
+        is_single_sensor = len(self.sensor_config.sensor) == 1
+
+        self.history_plots = []
+        self.history_ims = []
+        for i, sensor_id in enumerate(self.sensor_config.sensor):
+            title = None if is_single_sensor else "Sensor {}".format(sensor_id)
+            plot = pg.PlotWidget(title="Histpory Plot", row=1, col=i)
+            plot.setMenuEnabled(False)
+            plot.setMouseEnabled(x=False, y=False)
+            plot.hideButtons()
+            plot.setLabel("bottom", xlabel)
+            plot.setLabel("left", "Depth (m)")
+            im = pg.ImageItem(autoDownsample=True)
+            im.setLookupTable(et.utils.pg_mpl_cmap("viridis"))
+            im.resetTransform()
+            tr = QtGui.QTransform()
+            tr.translate(x_offset, y_offset)
+            tr.scale(x_scale, y_scale)
+            im.setTransform(tr)
+            plot.addItem(im)
+            self.history_plots.append(plot)
+            self.history_ims.append(im)
+
         self.d2.addWidget(self.sweep_plot)
-        self.d3.addWidget(self.hist_plot)
+        self.d3.addWidget(plot)
 
         self.win.show()
 
@@ -252,6 +317,7 @@ class PGUpdater:
             #    text = "-"
 
             self.peak_text.setText(text)
-            
+
+
 #if __name__ == '__main__':
 #    pg.exec()

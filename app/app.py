@@ -17,20 +17,20 @@ from PyQt5.QtCore import (
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
-class RadarActivation(QObject):
-    finished = pyqtSignal()
-    progress = pyqtSignal(int)
+#class RadarActivation(QObject):
+#    finished = pyqtSignal()
+#    progress = pyqtSignal(int)
 
-    def radar_start(self):
-        ssh = subprocess.Popen('plink -ssh pi@192.168.1.131 -pw raspberry', #need to figure out how ot pass the ip address variable to here
-                shell=False,
-                stdin=subprocess.PIPE,
-                universal_newlines=True,
-                creationflags=subprocess.CREATE_NEW_CONSOLE)
+#    def radar_start(self):
+#        ssh = subprocess.Popen('plink -ssh pi@192.168.1.131 -pw raspberry', #need to figure out how ot pass the ip address variable to here
+#                shell=False,
+#                stdin=subprocess.PIPE,
+#                universal_newlines=True,
+#                creationflags=subprocess.CREATE_NEW_CONSOLE)
 
-        ssh.communicate("./rpi_xc112/out/acc_exploration_server_a111\n")
+#        ssh.communicate("./rpi_xc112/out/acc_exploration_server_a111\n")
 
-        self.finished.emit()
+#        self.finished.emit()
 
 class Window(QMainWindow):
     def __init__(self):
@@ -57,24 +57,24 @@ class Window(QMainWindow):
     
         self.stackedlayout.addWidget(self.label)
         
-        self.btn_1 = QtWidgets.QPushButton("Start Radar")
+        #self.btn_1 = QtWidgets.QPushButton("Start Radar")
         self.btn_2 = QtWidgets.QPushButton("Start Scanner")
         self.btn_3 = QtWidgets.QPushButton("Load Scan")
         self.btn_4 = QtWidgets.QPushButton("Close")
         
-        self.IP = QLineEdit()
-        self.DataName = QLineEdit()
+        #self.IP = QLineEdit()
+        #self.DataName = QLineEdit()
         #optionsLayout.addRow('Scanner IP Address', self.IP)
         #optionsLayout.addRow('Scan File Name', self.DataName)
-        optionslayout.addWidget(self.btn_1)
+        #optionslayout.addWidget(self.btn_1)
         optionslayout.addWidget(self.btn_2)
         optionslayout.addWidget(self.btn_3)
         optionslayout.addWidget(self.btn_4)
 
-        self.btn_1.clicked.connect(self.runRadarActivation)
+        #self.btn_1.clicked.connect(self.runRadarActivation)
         self.btn_2.clicked.connect(self.scanner)
         self.btn_3.clicked.connect(self.activate_load)
-        self.btn_1.clicked.connect(self.layoutchange)
+        self.btn_2.clicked.connect(self.layoutchange)
         self.btn_4.clicked.connect(self.close)
 
         widget = QWidget()
@@ -83,22 +83,22 @@ class Window(QMainWindow):
     
 
     def layoutchange(self):
-        self.stackedlayout.setCurrentIndex(0) 
+        self.stackedlayout.setCurrentIndex(1) 
         
-    def runRadarActivation(self):
-        self.thread = QThread()
-        self.worker = RadarActivation()
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.radar_start)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.deleteLater)
+#    def runRadarActivation(self):
+#        self.thread = QThread()
+#        self.worker = RadarActivation()
+#        self.worker.moveToThread(self.thread)
+#        self.thread.started.connect(self.worker.radar_start)
+#        self.worker.finished.connect(self.thread.quit)
+#        self.worker.finished.connect(self.deleteLater)
         
-        self.thread.start()
+#        self.thread.start()
     
-        self.btn_1.setEnabled(False)
-        self.thread.finished.connect(
-            lambda: self.btn_1.setEnabled(True)
-        )
+#        self.btn_1.setEnabled(False)
+#        self.thread.finished.connect(
+#            lambda: self.btn_1.setEnabled(True)
+#        )
 
     def activate_load(self, s):
         options = QtWidgets.QFileDialog.Options()
@@ -115,8 +115,12 @@ class Window(QMainWindow):
         image.show()
         
     def scanner(self):
-        ipValue = self.IP.text()
-        check_output(f"python -m distance_detector -u com5")
+        subprocess.Popen('python -m envelope -u com5', #need to figure out how ot pass the ip address variable to here
+                shell=True,
+                stdin=subprocess.PIPE,
+                universal_newlines=True,
+                creationflags=subprocess.CREATE_NEW_CONSOLE)
+#        check_output(f"python -m envelope -u com5")
     #THis should be embedded in the main ui. change the layout from the logo to this
         
           
