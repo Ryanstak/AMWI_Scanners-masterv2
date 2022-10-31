@@ -1,3 +1,5 @@
+
+from PySide6 import QtGui
 import numpy as np
 import pyqtgraph as pg
 import math
@@ -6,6 +8,7 @@ import pyautogui
 from pyqtgraph.dockarea.Dock import Dock
 from pyqtgraph.dockarea.DockArea import DockArea
 from pyqtgraph.Qt import QtWidgets
+
 
 class PGUpdater:
     def __init__(self, sensor_config, processing_config, session_info):
@@ -27,7 +30,6 @@ class PGUpdater:
         if not self.setup_is_done:
             return
 
-        # Hide the first_distance_above_threshold data
         self.first_distance_above_threshold.setVisible(
             processing_config.show_first_above_threshold
         )
@@ -49,35 +51,47 @@ class PGUpdater:
         self.d1 = Dock('Options', size=(10,10))
         self.d2 = Dock('Sweep Plot', size=(800,500))
         self.d3 = Dock('History Plot', size=(800,500))
+        self.d4 = Dock('Sensor Results', size=(10,10))
         
-        self.area.addDock(self.d1, 'right')
+        self.area.addDock(self.d1, 'left')
         self.area.addDock(self.d2, 'bottom')
+        self.area.addDock(self.d4, 'bottom')
         self.area.addDock(self.d3, 'bottom')
         
         self.w1 = pg.LayoutWidget()
         self.filelabel = QtWidgets.QLabel('File Name:')
         self.filename = QtWidgets.QLineEdit('name.png')
-        self.constantlabel = QtWidgets.QLabel('Dielectirc Constant')
-        self.constantDrop = QtWidgets.QComboBox()
+        #self.constantlabel = QtWidgets.QLabel('Dielectirc Constant')
+        #self.constantDrop = QtWidgets.QComboBox()
         self.saveBtn = QtWidgets.QPushButton('Save File')
         self.closeBtn = QtWidgets.QPushButton('Close')
         
-        self.constantDrop.addItems(['HDPE (2.2)', 'GFRP (4.4)'])
-        if self.constantDrop.currentIndex() == 0:
-            self.constant_variable = math.sqrt(4.4)
-        else:
-            self.constant_variable = math.sqrt(2.2)
+        #self.constantDrop.addItems(['None', 'HDPE (2.2)', 'GFRP (4.4)'])
+        #if self.constantDrop.currentIndex() == 0:
+        #    self.constant_variable = 1
+        #elif self.constantDrop.currentIndex() == 1:
+        #    self.constant_variable = math.sqrt(4.4)
+        #elif self.constantDrop.currentIndex() == 2:
+        #    self.constant_variable = math.sqrt(2.2)
         
         
         self.w1.addWidget(self.filelabel, row=0, col=0)
         self.w1.addWidget(self.filename, row=0, col=1)
-        self.w1.addWidget(self.constantlabel, row=0, col=2)
-        self.w1.addWidget(self.constantDrop, row=0, col=3)
+        #self.w1.addWidget(self.constantlabel, row=0, col=2)
+        #self.w1.addWidget(self.constantDrop, row=0, col=3)
         self.w1.addWidget(self.saveBtn, row=1, col=2)
         self.w1.addWidget(self.closeBtn, row=1, col=3)
         self.d1.addWidget(self.w1)
         #state = None
 
+        self.w2 = pg.LayoutWidget()
+        self.startpos = QtWidgets.QLabel('Starting Point: ')
+    
+
+        
+        
+        self.w2.addWidget(self.startpos, row=0, col=0)
+        self.d4.addWidget(self.w2)
         
         self.saveBtn.clicked.connect(self.screenshot)
         self.closeBtn.clicked.connect(self.close)
@@ -176,6 +190,7 @@ class PGUpdater:
 
 
         num_sensors = len(self.sensor_config.sensor)
+        
 
         self.ampl_plot = pg.PlotWidget(title="Amplitude", row=0, colspan=num_sensors)
         self.ampl_plot.setMenuEnabled(False)
@@ -187,26 +202,6 @@ class PGUpdater:
         self.ampl_plot.setXRange(*self.depths.take((0, -1)))
         self.ampl_plot.setYRange(0, 1)  # To avoid rendering bug
         self.ampl_plot.addLegend(offset=(-10, 10))
-
-        self.ampl_curves = []
-        self.bg_curves = []
-        self.peak_lines = []
-        for i, sensor_id in enumerate(self.sensor_config.sensor):
-            legend = "Sensor {}".format(sensor_id)
-            ampl_curve = self.ampl_plot.plot(pen=et.utils.pg_pen_cycler(i), name=legend)
-            bg_curve = self.ampl_plot.plot(pen=et.utils.pg_pen_cycler(i, style="--"))
-            color_tuple = et.utils.hex_to_rgb_tuple(et.utils.color_cycler(i))
-            peak_line = pg.InfiniteLine(pen=pg.mkPen(pg.mkColor(*color_tuple, 150), width=2))
-            self.ampl_plot.addItem(peak_line)
-            self.ampl_curves.append(ampl_curve)
-            self.bg_curves.append(bg_curve)
-            self.peak_lines.append(peak_line)
-
-        bg = pg.mkColor(0xFF, 0xFF, 0xFF, 150)
-        self.peak_text = pg.TextItem(anchor=(0, 1), color="k", fill=bg)
-        self.peak_text.setPos(self.depths[0], 0)
-        self.peak_text.setZValue(100)
-        self.ampl_plot.addItem(self.peak_text)
 
         rate = self.sensor_config.update_rate
         xlabel = "Sweeps" if rate is None else "Time (s)"
@@ -238,7 +233,7 @@ class PGUpdater:
             self.history_ims.append(im)
 
         self.d2.addWidget(self.sweep_plot)
-        self.d3.addWidget(plot)
+        self.d3.addWidget(self.ampl_plot)
 
         self.win.show()
 
@@ -300,7 +295,7 @@ class PGUpdater:
             #    text = f"Peak One: {sorted_peaks[0]:.2f} mm Peak Two: {sorted_peaks[1]:.2f} mm Peak Three: {sorted_peaks[2]:.2f} mm Uncorrected Depth (Peak 2): {difference_peaks1:.2f} mm Material Depth (Peak 2): {material_peaks1:.2f} mm Uncorrected Depth (Peak 3): {difference_peaks2:.2f} mm Material Depth (Peak 3): {material_peaks2:.2f} mm"
             if len(peaks)>1:
                 sorted_peaks = sorted(peaks)
-                diconstant = self.constant_variable
+                diconstant = app.Window.divariable(self)
                 difference_peaks1 = (sorted_peaks[1] - sorted_peaks[0])
             #difference_peaks2 = (sorted_peaks[2] - sorted_peaks[0])
                 material_peaks1 = difference_peaks1 / diconstant

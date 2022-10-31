@@ -5,7 +5,7 @@ from typing import Optional
 import numpy as np
 
 import acconeer.exptool as et
-
+from .calibration import EnvelopeCalibration
 from .calibration import DistanceDetectorCalibration
 
 
@@ -16,6 +16,9 @@ def get_sensor_config():
     config = et.a111.EnvelopeServiceConfig()
     config.range_interval = [0.01, 1.0]
     config.update_rate = 50
+    config.profile = config.Profile.PROFILE_1
+    config.hw_accelerated_average_samples = 15
+    config.update_rate = 30
     config.gain = 0.5
     config.running_average_factor = 0  # Use averaging in detector instead of in API
 
@@ -25,6 +28,20 @@ def get_sensor_config():
 class Processor:
     def __init__(self, sensor_config, processing_config, session_info, calibration=None):
         self.session_info = session_info
+        self.processing_config = processing_config
+
+        self.depths = et.a111.get_range_depths(sensor_config, session_info)
+        num_depths = self.depths.size
+        num_sensors = len(sensor_config.sensor)
+
+        buffer_length = self.processing_config.bg_buffer_length
+        self.bg_buffer = np.zeros([buffer_length, num_sensors, num_depths])
+
+        history_length = self.processing_config.history_length
+        self.history = np.zeros([history_length, num_sensors, num_depths])
+
+        self.data_index = 0
+        self.calibration = calibration
 
         self.f = sensor_config.update_rate
 
@@ -392,7 +409,44 @@ class Processor:
         return out_data
 
 
+
 class ProcessingConfiguration(et.configbase.ProcessingConfig):
+    VERSION = 1
+
+    class BackgroundMode(Enum):
+        SUBTRACT = "Subtract"
+        LIMIT = "Limit"
+
+    show_peak_depths = et.configbase.BoolParameter(
+        label="Show peak distances",
+        default_value=True,
+        updateable=True,
+        order=-10,
+    )
+
+    bg_buffer_length = et.configbase.IntParameter(
+        default_value=50,
+        limits=(1, 200),
+        label="Background buffer length",
+        order=0,
+    )
+
+    bg_mode = et.configbase.EnumParameter(
+        label="Background mode",
+        default_value=BackgroundMode.SUBTRACT,
+        enum=BackgroundMode,
+        updateable=True,
+        order=20,
+    )
+
+    history_length = et.configbase.IntParameter(
+        default_value=100,
+        limits=(10, 1000),
+        label="History length",
+        order=30,
+    )
+
+    
     class ThresholdType(Enum):
         FIXED = "Fixed"
         RECORDED = "Recorded"

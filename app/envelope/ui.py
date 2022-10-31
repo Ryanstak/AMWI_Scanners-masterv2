@@ -1,17 +1,16 @@
 from PySide6 import QtGui
-
 import pyqtgraph as pg
-
+from amwi_app import *
 import acconeer.exptool as et
 
 from ._processor import ProcessingConfiguration
-
 import numpy as np
 import math
 import pyautogui
 from pyqtgraph.dockarea.Dock import Dock
 from pyqtgraph.dockarea.DockArea import DockArea
 from pyqtgraph.Qt import QtWidgets
+
 
 class PGUpdater:
     def __init__(self, sensor_config, processing_config, session_info):
@@ -45,29 +44,26 @@ class PGUpdater:
         self.w1 = pg.LayoutWidget()
         self.filelabel = QtWidgets.QLabel('File Name:')
         self.filename = QtWidgets.QLineEdit('name.png')
-        self.constantlabel = QtWidgets.QLabel('Dielectirc Constant')
-        self.constantDrop = QtWidgets.QComboBox()
+        #self.constantlabel = QtWidgets.QLabel('Dielectirc Constant')
+        #self.constantDrop = QtWidgets.QComboBox()
         self.saveBtn = QtWidgets.QPushButton('Save File')
         self.closeBtn = QtWidgets.QPushButton('Close')
         
-        self.constantDrop.addItems(['None', 'HDPE (2.2)', 'GFRP (4.4)'])
-        if self.constantDrop.currentIndex() == 0:
-            self.constant_variable = 1
-        elif self.constantDrop.currentIndex() == 1:
-            self.constant_variable = math.sqrt(4.4)
-        elif self.constantDrop.currentIndex() == 2:
-            self.constant_variable = math.sqrt(2.2)
-        
-        
         self.w1.addWidget(self.filelabel, row=0, col=0)
         self.w1.addWidget(self.filename, row=0, col=1)
-        self.w1.addWidget(self.constantlabel, row=1, col=0)
-        self.w1.addWidget(self.constantDrop, row=1, col=1)
+        #self.w1.addWidget(self.constantlabel, row=1, col=0)
+        #self.w1.addWidget(self.constantDrop, row=1, col=1)
         self.w1.addWidget(self.saveBtn, row=2, col=0)
         self.w1.addWidget(self.closeBtn, row=2, col=1)
         self.d1.addWidget(self.w1)
         #state = None
 
+
+        self.w2 = pg.LayoutWidget()
+        #self.startpos = QtWidgets.QLabel('Starting Point: ')
+        
+        #self.w2.addWidget(self.startpos, row=0, col=0)
+        self.d4.addWidget(self.w2)
         
         self.saveBtn.clicked.connect(self.screenshot)
         self.closeBtn.clicked.connect(self.close)
@@ -84,7 +80,7 @@ class PGUpdater:
         self.ampl_plot.setXRange(*self.depths.take((0, -1)))
         self.ampl_plot.setYRange(0, 1)  # To avoid rendering bug
         self.ampl_plot.addLegend(offset=(-10, 10))
-
+        
         self.ampl_curves = []
         self.bg_curves = []
         self.peak_lines = []
@@ -122,10 +118,17 @@ class PGUpdater:
 
         bg = pg.mkColor(0xFF, 0xFF, 0xFF, 150)
         self.peak_text = pg.TextItem(anchor=(0, 1), color="k", fill=bg)
-        self.peak_text.setPos(self.depths[0], 0)
+        self.peak_text.setPos(self.depths[1], 0)
         self.peak_text.setZValue(100)
         self.ampl_plot.addItem(self.peak_text)
+        
 
+        bg = pg.mkColor(0xFF, 0xFF, 0xFF, 150)
+        self.peak_text2 = pg.TextItem(anchor=(0, 1), color="k", fill=bg)
+        self.peak_text2.setPos(self.depths[0], 0)
+        self.peak_text2.setZValue(100)
+        self.ampl_plot.addItem(self.peak_text2)
+        
         rate = self.sensor_config.update_rate
         xlabel = "Sweeps" if rate is None else "Time (s)"
         x_scale = 1.0 if rate is None else 1.0 / rate
@@ -170,7 +173,6 @@ class PGUpdater:
     def close(self):
         quit()
     
-
 
     def update_processing_config(self, processing_config=None):
         if processing_config is None:
@@ -222,3 +224,6 @@ class PGUpdater:
         z = zip(self.sensor_config.sensor, val_strs)
         t = "\n".join(["Sensor {}: {}".format(sid, v) for sid, v in z])
         self.peak_text.setText(t)
+
+
+

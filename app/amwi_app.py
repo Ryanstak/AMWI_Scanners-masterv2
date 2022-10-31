@@ -2,7 +2,7 @@
 import sys
 import os
 import subprocess
-
+import math
 from PIL import Image
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
@@ -14,6 +14,10 @@ from PyQt5.QtCore import (
     QThread,
     pyqtSignal
 )
+import pyqtgraph
+import acconeer
+
+
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 
@@ -61,15 +65,15 @@ class Window(QMainWindow):
         self.btn_2 = QtWidgets.QPushButton("Start Scanner")
         self.btn_3 = QtWidgets.QPushButton("Load Scan")
         self.btn_4 = QtWidgets.QPushButton("Close")
-        
-        #self.IP = QLineEdit()
-        #self.DataName = QLineEdit()
-        #optionsLayout.addRow('Scanner IP Address', self.IP)
-        #optionsLayout.addRow('Scan File Name', self.DataName)
+        self.drop1 = QtWidgets.QComboBox()
+        #self.drop1.addItems(['None', 'HDPE (2.2)', 'GFRP (4.4)'])
+    
+    
         #optionslayout.addWidget(self.btn_1)
         optionslayout.addWidget(self.btn_2)
         optionslayout.addWidget(self.btn_3)
         optionslayout.addWidget(self.btn_4)
+        #optionslayout.addWidget(self.drop1)
 
         #self.btn_1.clicked.connect(self.runRadarActivation)
         self.btn_2.clicked.connect(self.scanner)
@@ -81,6 +85,21 @@ class Window(QMainWindow):
         widget.setLayout(pagelayout)
         self.setCentralWidget(widget)
     
+    def dielectric_variable(self):
+        drop = self.drop1.currentIndex()
+        
+        if drop == 0:
+            constant_variable = 1
+        elif drop == 1:
+            constant_variable = math.sqrt(2.2)
+        elif drop == 2:
+            constant_variable = math.sqrt(4.4)
+            
+        current_di_var = constant_variable       
+        
+    
+    def constant_var(self):
+        c_var = self.constant_variable.text()
 
     def layoutchange(self):
         self.stackedlayout.setCurrentIndex(1) 
@@ -115,15 +134,17 @@ class Window(QMainWindow):
         image.show()
         
     def scanner(self):
-        subprocess.Popen('python -m envelope -u com5', #need to figure out how ot pass the ip address variable to here
+        ssh = subprocess.Popen('python -m envelope -u com5', #need to figure out how ot pass the ip address variable to here
                 shell=True,
                 stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE,
                 universal_newlines=True,
                 creationflags=subprocess.CREATE_NEW_CONSOLE)
-#        check_output(f"python -m envelope -u com5")
+        #check_output(f"python -m envelope -u com5")
     #THis should be embedded in the main ui. change the layout from the logo to this
         
-          
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = Window()
