@@ -66,14 +66,15 @@ class Window(QMainWindow):
         self.btn_3 = QtWidgets.QPushButton("Load Scan")
         self.btn_4 = QtWidgets.QPushButton("Close")
         self.drop1 = QtWidgets.QComboBox()
-        #self.drop1.addItems(['None', 'HDPE (2.2)', 'GFRP (4.4)'])
+        self.drop1.addItems(['None', 'HDPE (2.2)', 'GFRP (4.4)'])
     
     
         #optionslayout.addWidget(self.btn_1)
         optionslayout.addWidget(self.btn_2)
+        optionslayout.addWidget(self.drop1)
         optionslayout.addWidget(self.btn_3)
         optionslayout.addWidget(self.btn_4)
-        #optionslayout.addWidget(self.drop1)
+
 
         #self.btn_1.clicked.connect(self.runRadarActivation)
         self.btn_2.clicked.connect(self.scanner)
@@ -85,7 +86,7 @@ class Window(QMainWindow):
         widget.setLayout(pagelayout)
         self.setCentralWidget(widget)
     
-    def dielectric_variable(self):
+    def dielectric_variable(self): #This needs to change the program that is ran in scanner to be either HDPE or GFRP
         drop = self.drop1.currentIndex()
         
         if drop == 0:
@@ -134,7 +135,7 @@ class Window(QMainWindow):
         image.show()
         
     def scanner(self):
-        ssh = subprocess.Popen('python -m envelope -u com5', #need to figure out how ot pass the ip address variable to here
+        ssh = subprocess.Popen('python -m HDPE -u com5', 
                 shell=True,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, 

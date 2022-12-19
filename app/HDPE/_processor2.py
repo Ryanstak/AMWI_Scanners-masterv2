@@ -5,8 +5,8 @@ from typing import Optional
 import numpy as np
 
 import acconeer.exptool as et
-from .calibration import EnvelopeCalibration
-from .calibration import DistanceDetectorCalibration
+
+from .calibration2 import DistanceDetectorCalibration
 
 
 PEAK_MERGE_LIMIT_M = 0.005
@@ -19,7 +19,7 @@ def get_sensor_config():
     config.profile = config.Profile.PROFILE_1
     config.hw_accelerated_average_samples = 15
     config.update_rate = 30
-    config.gain = 0.7
+    config.gain = 0.5
     config.running_average_factor = 0  # Use averaging in detector instead of in API
 
     return config
@@ -30,9 +30,6 @@ class Processor:
         self.session_info = session_info
         self.processing_config = processing_config
 
-
-        self.num_depths = self.session_info["data_length"]
-        self.last_mean_sweep = np.full(self.num_depths, np.nan)
         self.depths = et.a111.get_range_depths(sensor_config, session_info)
         num_depths = self.depths.size
         num_sensors = len(sensor_config.sensor)
@@ -384,9 +381,6 @@ class Processor:
                 self.above_thres_hist_sweep_idx.pop(0)
                 self.above_thres_hist_dist.pop(0)
 
-        self.history = np.roll(self.history, -1, axis=0)
-        self.history[-1] = sweep
-
         out_data = {
             "sweep": sweep,
             "last_mean_sweep": self.last_mean_sweep,
@@ -405,7 +399,6 @@ class Processor:
             "above_thres_hist_dist": np.array(self.above_thres_hist_dist),
             "sweep_index": self.sweep_index,
             "found_peaks": found_peaks,
-            "history": self.history,
         }
 
         if new_calibration:
@@ -537,7 +530,7 @@ class ProcessingConfiguration(et.configbase.ProcessingConfig):
 
     cfar_sensitivity = et.configbase.FloatParameter(
         label="CFAR sensitivity",
-        default_value=0.25,
+        default_value=0.5,
         limits=(0.01, 1),
         logscale=True,
         visible=lambda conf: conf.threshold_type == conf.ThresholdType.CFAR,
@@ -553,7 +546,7 @@ class ProcessingConfiguration(et.configbase.ProcessingConfig):
 
     cfar_guard_m = et.configbase.FloatParameter(
         label="CFAR guard",
-        default_value=0.05,
+        default_value=0.12,
         limits=(0.01, 0.2),
         unit="m",
         decimals=3,
