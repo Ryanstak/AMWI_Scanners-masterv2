@@ -135,7 +135,7 @@ class Window(QMainWindow):
         image.show()
         
     def scanner(self):
-        ssh = subprocess.Popen('python -m HDPE -u com5', 
+        ssh = subprocess.Popen('python -m distance_detector -u com5', 
                 shell=True,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, 
