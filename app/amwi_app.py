@@ -135,7 +135,7 @@ class Window(QMainWindow):
         image.show()
         
     def scanner(self):
-        ssh = subprocess.Popen('python -m distance_detector -u com5', 
+        ssh = subprocess.Popen('python -m envelope -u com5', 
                 shell=True,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, 
@@ -143,7 +143,7 @@ class Window(QMainWindow):
                 universal_newlines=True,
                 creationflags=subprocess.CREATE_NEW_CONSOLE)
         #check_output(f"python -m envelope -u com5")
-    #THis should be embedded in the main ui. change the layout from the logo to this
+    #THis should be embedded in the main ui. change the layout from the logo to this. This should run either the HDPE or a different program based on the selection on the main screen.
         
 
 if __name__ == "__main__":
